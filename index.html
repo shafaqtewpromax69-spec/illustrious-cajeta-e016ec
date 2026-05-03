@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Climate: Our Planet's Weather Patterns</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
+      },
+      colors: {
+        dark: { 50: '#1a1a2e', 100: '#16162a', 200: '#111126', 300: '#0c0c1d', 400: '#080815', 500: '#05050d' },
+        accent: { blue: '#4a9eff', teal: '#2dd4bf', amber: '#f59e0b', rose: '#f43f5e' }
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { overflow: hidden; height: 100%; background: #05050d; }
+
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+                visibility 0.8s;
+    transform: scale(1.02);
+  }
+  .slide.active {
+    opacity: 1; visibility: visible;
+    transform: scale(1);
+  }
+  .slide.exit-left {
+    opacity: 0; visibility: hidden;
+    transform: scale(0.96) translateX(-3%);
+  }
+  .slide.exit-right {
+    opacity: 0; visibility: hidden;
+    transform: scale(0.96) translateX(3%);
+  }
+
+  .bg-image {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.45) saturate(1.1);
+  }
+  .bg-gradient {
+    position: absolute; inset: 0;
+  }
+
+  .fade-up {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .slide.active .fade-up { opacity: 1; transform: translateY(0); }
+  .slide.active .fade-up.d1 { transition-delay: 0.15s; }
+  .slide.active .fade-up.d2 { transition-delay: 0.3s; }
+  .slide.active .fade-up.d3 { transition-delay: 0.45s; }
+  .slide.active .fade-up.d4 { transition-delay: 0.6s; }
+  .slide.active .fade-up.d5 { transition-delay: 0.75s; }
+  .slide.active .fade-up.d6 { transition-delay: 0.9s; }
+
+  .card-climate {
+    position: relative; overflow: hidden; border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .card-climate:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-4px);
+  }
+  .card-climate img {
+    transition: transform 0.7s ease;
+  }
+  .card-climate:hover img {
+    transform: scale(1.08);
+  }
+
+  .nav-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    transition: all 0.4s ease; cursor: pointer;
+  }
+  .nav-dot.active {
+    background: #fff; width: 28px; border-radius: 4px;
+  }
+
+  .icon-box {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 2px;
+    background: linear-gradient(90deg, #4a9eff, #2dd4bf);
+    transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 100;
+  }
+
+  .action-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    transition: all 0.4s ease;
+  }
+  .action-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(45, 212, 191, 0.3);
+    transform: translateY(-3px);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+  .float-anim { animation: float 6s ease-in-out infinite; }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+  .pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+  .split-image {
+    position: relative; overflow: hidden; border-radius: 20px;
+  }
+  .split-image img {
+    transition: transform 0.7s ease;
+  }
+  .split-image:hover img {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body class="font-sans text-white select-none">
+
+<!-- Progress Bar -->
+<div class="progress-bar" id="progressBar" style="width: 16.66%"></div>
+
+<!-- Slide Container -->
+<div class="relative w-full h-full" id="slideContainer">
+
+  <!-- ==================== SLIDE 1: TITLE ==================== -->
+  <div class="slide active" data-slide="0">
+    <div class="bg-image" style="background-image: url('https://picsum.photos/seed/earth-from-space/1920/1080.jpg')"></div>
+    <div class="bg-gradient" style="background: linear-gradient(180deg, rgba(5,5,13,0.3) 0%, rgba(5,5,13,0.1) 40%, rgba(5,5,13,0.7) 80%, rgba(5,5,13,0.95) 100%)"></div>
+    <div class="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
+      <div class="fade-up d1 mb-6">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
+          <div class="w-2 h-2 rounded-full bg-accent-teal pulse-glow"></div>
+          <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-white/60">Environmental Science</span>
+        </div>
+      </div>
+      <h1 class="fade-up d2 font-serif text-5xl md:text-7xl lg:text-8xl font-400 tracking-tight leading-[0.95] max-w-5xl" style="text-shadow: 0 20px 60px rgba(0,0,0,0.5)">
+        Climate
+        <span class="block text-white/40 text-3xl md:text-4xl lg:text-5xl font-light mt-3 font-sans tracking-normal">Our Planet's Weather Patterns</span>
+      </h1>
+      <p class="fade-up d3 mt-8 text-base md:text-lg font-light text-white/50 max-w-xl leading-relaxed">
+        Understanding how Earth's climate affects life
+      </p>
+      <div class="fade-up d4 mt-12 flex items-center gap-3 text-white/30 text-xs tracking-widest uppercase">
+        <span>Scroll to explore</span>
+        <iconify-icon icon="lucide:arrow-down" width="14" class="float-anim"></iconify-icon>
+      </div>
+    </div>
+    <!-- Decorative corner elements -->
+    <div class="absolute top-8 left-8 w-16 h-16 border-l border-t border-white/10 rounded-tl-2xl fade-up d3"></div>
+    <div class="absolute bottom-8 right-8 w-16 h-16 border-r border-b border-white/10 rounded-br-2xl fade-up d3"></div>
+  </div>
+
+  <!-- ==================== SLIDE 2: WHAT IS CLIMATE? ==================== -->
+  <div class="slide" data-slide="1">
+    <div class="bg-image" style="background-image: url('https://picsum.photos/seed/atmosphere-blue/1920/1080.jpg')"></div>
+    <div class="bg-gradient" style="background: linear-gradient(135deg, rgba(5,5,13,0.92) 0%, rgba(10,15,30,0.85) 50%, rgba(5,5,13,0.92) 100%)"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full max-w-7xl mx-auto px-8 md:px-16 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <!-- Left: Content -->
+        <div>
+          <div class="fade-up d1 flex items-center gap-3 mb-6">
+            <div class="w-8 h-[2px] bg-accent-blue rounded-full"></div>
+            <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-accent-blue">01 — Definition</span>
+          </div>
+          <h2 class="fade-up d2 font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1]">What is<br><em class="text-white/50 font-normal">Climate?</em></h2>
+          <div class="mt-8 space-y-5">
+            <div class="fade-up d3 flex items-start gap-4">
+              <div class="icon-box mt-0.5">
+                <iconify-icon icon="lucide:clock" width="18" class="text-accent-blue"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Long-term average weather</p>
+                <p class="text-xs text-white/40 mt-1 font-light leading-relaxed">Climate is the average weather in a place measured over decades</p>
+              </div>
+            </div>
+            <div class="fade-up d4 flex items-start gap-4">
+              <div class="icon-box mt-0.5">
+                <iconify-icon icon="lucide:repeat" width="18" class="text-accent-teal"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Weather vs Climate</p>
+                <p class="text-xs text-white/40 mt-1 font-light leading-relaxed">Weather changes daily — climate is the long-term pattern</p>
+              </div>
+            </div>
+            <div class="fade-up d5 flex items-start gap-4">
+              <div class="icon-box mt-0.5">
+                <iconify-icon icon="lucide:map-pin" width="18" class="text-accent-amber"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Varies by region</p>
+                <p class="text-xs text-white/40 mt-1 font-light leading-relaxed">Dhaka's hot summers vs Antarctica's freezing climate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Split Images -->
+        <div class="fade-up d3 grid grid-cols-2 gap-4">
+          <div class="split-image aspect-[3/4]">
+            <img src="https://picsum.photos/seed/hot-desert-dunes/600/800.jpg" alt="Hot climate" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute bottom-4 left-4">
+              <span class="text-[10px] font-bold tracking-[0.15em] uppercase text-accent-amber/80">Hot</span>
+              <p class="text-xs text-white/60 mt-0.5">Tropical & Desert</p>
+            </div>
+          </div>
+          <div class="split-image aspect-[3/4] mt-8">
+            <img src="https://picsum.photos/seed/frozen-ice-landscape/600/800.jpg" alt="Cold climate" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div class="absolute bottom-4 left-4">
+              <span class="text-[10px] font-bold tracking-[0.15em] uppercase text-accent-blue/80">Cold</span>
+              <p class="text-xs text-white/60 mt-0.5">Polar & Alpine</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 3: TYPES OF CLIMATE ==================== -->
+  <div class="slide" data-slide="2">
+    <div class="bg-image" style="background-image: url('https://picsum.photos/seed/dark-terrain-map/1920/1080.jpg')"></div>
+    <div class="bg-gradient" style="background: linear-gradient(180deg, rgba(5,5,13,0.95) 0%, rgba(5,5,13,0.88) 30%, rgba(5,5,13,0.88) 70%, rgba(5,5,13,0.95) 100%)"></div>
+    <div class="absolute inset-0 flex flex-col justify-center px-8 md:px-16">
+      <div class="max-w-7xl mx-auto w-full">
+        <div class="text-center mb-12">
+          <div class="fade-up d1 flex items-center justify-center gap-3 mb-5">
+            <div class="w-8 h-[2px] bg-accent-teal rounded-full"></div>
+            <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-accent-teal">02 — Classification</span>
+            <div class="w-8 h-[2px] bg-accent-teal rounded-full"></div>
+          </div>
+          <h2 class="fade-up d2 font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">Types of Climate</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Tropical -->
+          <div class="fade-up d3 card-climate">
+            <div class="aspect-[4/3] overflow-hidden">
+              <img src="https://picsum.photos/seed/tropical-rainforest/600/450.jpg" alt="Tropical" class="w-full h-full object-cover">
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <iconify-icon icon="lucide:sun" width="14" class="text-accent-amber"></iconify-icon>
+                <span class="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40">Tropical</span>
+              </div>
+              <p class="text-sm font-medium text-white/80">Hot & Wet</p>
+              <p class="text-xs text-white/35 mt-1.5 font-light leading-relaxed">Rainforests, monsoons, year-round warmth</p>
+            </div>
+          </div>
+          <!-- Desert -->
+          <div class="fade-up d4 card-climate">
+            <div class="aspect-[4/3] overflow-hidden">
+              <img src="https://picsum.photos/seed/sahara-desert-sand/600/450.jpg" alt="Desert" class="w-full h-full object-cover">
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <iconify-icon icon="lucide:thermometer-sun" width="14" class="text-orange-400"></iconify-icon>
+                <span class="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40">Desert</span>
+              </div>
+              <p class="text-sm font-medium text-white/80">Hot & Dry</p>
+              <p class="text-xs text-white/35 mt-1.5 font-light leading-relaxed">Minimal rainfall, extreme temperature swings</p>
+            </div>
+          </div>
+          <!-- Polar -->
+          <div class="fade-up d5 card-climate">
+            <div class="aspect-[4/3] overflow-hidden">
+              <img src="https://picsum.photos/seed/arctic-glacier-blue/600/450.jpg" alt="Polar" class="w-full h-full object-cover">
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <iconify-icon icon="lucide:snowflake" width="14" class="text-accent-blue"></iconify-icon>
+                <span class="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40">Polar</span>
+              </div>
+              <p class="text-sm font-medium text-white/80">Cold & Icy</p>
+              <p class="text-xs text-white/35 mt-1.5 font-light leading-relaxed">Permafrost, ice sheets, sub-zero year-round</p>
+            </div>
+          </div>
+          <!-- Temperate -->
+          <div class="fade-up d6 card-climate">
+            <div class="aspect-[4/3] overflow-hidden">
+              <img src="https://picsum.photos/seed/green-meadow-spring/600/450.jpg" alt="Temperate" class="w-full h-full object-cover">
+            </div>
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <iconify-icon icon="lucide:leaf" width="14" class="text-accent-teal"></iconify-icon>
+                <span class="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40">Temperate</span>
+              </div>
+              <p class="text-sm font-medium text-white/80">Mild & Seasonal</p>
+              <p class="text-xs text-white/35 mt-1.5 font-light leading-relaxed">Four distinct seasons, moderate precipitation</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 4: WHY CLIMATE MATTERS ==================== -->
+  <div class="slide" data-slide="3">
+    <div class="bg-image" style="background-image: url('https://picsum.photos/seed/golden-wheat-field/1920/1080.jpg')"></div>
+    <div class="bg-gradient" style="background: linear-gradient(160deg, rgba(5,5,13,0.94) 0%, rgba(15,12,5,0.8) 50%, rgba(5,5,13,0.94) 100%)"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full max-w-7xl mx-auto px-8 md:px-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <!-- Left: Content -->
+        <div>
+          <div class="fade-up d1 flex items-center gap-3 mb-6">
+            <div class="w-8 h-[2px] bg-accent-amber rounded-full"></div>
+            <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-accent-amber">03 — Significance</span>
+          </div>
+          <h2 class="fade-up d2 font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[1]">Why Climate<br><em class="text-white/50 font-normal">Matters</em></h2>
+          <p class="fade-up d3 mt-6 text-sm text-white/40 font-light leading-relaxed max-w-md">
+            Climate is the invisible force shaping every aspect of life on Earth — from the food on our plates to the homes we build.
+          </p>
+          <div class="mt-8 space-y-4">
+            <div class="fade-up d3 flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div class="icon-box" style="background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.15);">
+                <iconify-icon icon="lucide:wheat" width="18" class="text-accent-amber"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Agriculture & Food</p>
+                <p class="text-xs text-white/35 mt-0.5 font-light">Decides what crops can grow where</p>
+              </div>
+            </div>
+            <div class="fade-up d4 flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div class="icon-box" style="background: rgba(74,158,255,0.08); border-color: rgba(74,158,255,0.15);">
+                <iconify-icon icon="lucide:bird" width="18" class="text-accent-blue"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Wildlife & Ecosystems</p>
+                <p class="text-xs text-white/35 mt-0.5 font-light">Influences where animals live and thrive</p>
+              </div>
+            </div>
+            <div class="fade-up d5 flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div class="icon-box" style="background: rgba(45,212,191,0.08); border-color: rgba(45,212,191,0.15);">
+                <iconify-icon icon="lucide:home" width="18" class="text-accent-teal"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Human Lifestyle</p>
+                <p class="text-xs text-white/35 mt-0.5 font-light">Affects clothing, housing, and daily routines</p>
+              </div>
+            </div>
+            <div class="fade-up d6 flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div class="icon-box" style="background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.15);">
+                <iconify-icon icon="lucide:heart-handshake" width="18" class="text-accent-rose"></iconify-icon>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white/90">Culture & Traditions</p>
+                <p class="text-xs text-white/35 mt-0.5 font-light">Shapes festivals, cuisine, and heritage</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: Large atmospheric image -->
+        <div class="fade-up d4 hidden lg:block">
+          <div class="relative">
+            <div class="rounded-3xl overflow-hidden aspect-[4/5] shadow-2xl shadow-black/40">
+              <img src="https://picsum.photos/seed/terraced-rice-farming/800/1000.jpg" alt="Climate and life" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+            </div>
+            <!-- Floating stat -->
+            <div class="absolute -bottom-6 -left-6 p-5 rounded-2xl bg-dark-500/90 border border-white/10 backdrop-blur-md">
+              <p class="text-2xl font-semibold text-accent-amber">7</p>
+              <p class="text-[10px] text-white/40 font-medium tracking-wider uppercase mt-0.5">Major climate zones</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 5: CLIMATE CHANGE ==================== -->
+  <div class="slide" data-slide="4">
+    <div class="bg-image" style="background-image: url('https://picsum.photos/seed/wildfire-smoke-orange/1920/1080.jpg')"></div>
+    <div class="bg-gradient" style="background: linear-gradient(180deg, rgba(5,5,13,0.6) 0%, rgba(20,5,5,0.85) 40%, rgba(5,5,13,0.95) 100%)"></div>
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full max-w-7xl mx-auto px-8 md:px-16">
+        <div class="text-center mb-14">
+          <div class="fade-up d1 flex items-center justify-center gap-3 mb-5">
+            <div class="w-8 h-[2px] bg-accent-rose rounded-full"></div>
+            <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-accent-rose">04 — Crisis</span>
+            <div class="w-8 h-[2px] bg-accent-rose rounded-full"></div>
+          </div>
+          <h2 class="fade-up d2 font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">Climate Change</h2>
+          <p class="fade-up d3 mt-4 text-sm text-white/40 font-light max-w-lg mx-auto">Long-term shifts in global temperatures and weather patterns — accelerating at an unprecedented rate</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <!-- Causes -->
+          <div class="fade-up d4">
+            <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-accent-rose/10 border border-accent-rose/20 flex items-center justify-center">
+                  <iconify-icon icon="lucide:alert-triangle" width="18" class="text-accent-rose"></iconify-icon>
+                </div>
+                <h3 class="text-lg font-semibold tracking-tight">Causes</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
+                  <iconify-icon icon="lucide:flame" width="16" class="text-orange-400/70 flex-shrink-0"></iconify-icon>
+                  <span class="text-sm text-white/70 font-light">Burning fossil fuels</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
+                  <iconify-icon icon="lucide:trees" width="16" class="text-green-500/70 flex-shrink-0"></iconify-icon>
+                  <span class="text-sm text-white/70 font-light">Deforestation</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
+                  <iconify-icon icon="lucide:cloud-off" width="16" class="text-gray-400/70 flex-shrink-0"></iconify-icon>
+                  <span class="text-sm text-white/70 font-light">Industrial pollution</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Effects -->
+          <div class="fade-up d5">
+            <div class="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-sm">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-accent-amber/10 border border-accent-amber/20 flex items-center justify-center">
+                  <iconify-icon icon="lucide:trending-up" width="18" class="text-accent-amber"></iconify-icon>
+                </div>
+                <h3 class="text-lg font-semibold tracking-tight">Effects</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
+                  <iconify-icon icon="lucide:thermometer" width="16" class="text-red-400/70 flex-shrink-0"></iconify-icon>
+                  <span class="text-sm text-white/70 font-light">Rising global temperatures</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
+                  <iconify-icon icon="lucide:droplets" width="16" class="text-accent-blue/70 flex-shrink-0"></iconify-icon>
+                  <span class="text-sm text-white/70 font-light">Melting ice caps & glaciers</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03]">
+                  <iconify-icon icon="lucide:cloud-lightning" width="16" class="text-yellow-400/70 flex-shrink-0"></iconify-icon>
+                  <span class="text-sm text-white/70 font-light">Stronger storms & extreme weather</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom dramatic stat bar -->
+        <div class="fade-up d6 mt-10 flex flex-wrap items-center justify-center gap-8 md:gap-16">
+          <div class="text-center">
+            <p class="text-3xl md:text-4xl font-semibold text-accent-rose">+1.1°C</p>
+            <p class="text-[10px] text-white/30 font-medium tracking-wider uppercase mt-1">Global temp rise</p>
+          </div>
+          <div class="w-px h-10 bg-white/10 hidden md:block"></div>
+          <div class="text-center">
+            <p class="text-3xl md:text-4xl font-semibold text-accent-amber">421 ppm</p>
+            <p class="text-[10px] text-white/30 font-medium tracking-wider uppercase mt-1">CO₂ levels</p>
+          </div>
+          <div class="w-px h-10 bg-white/10 hidden md:block"></div>
+          <div class="text-center">
+            <p class="text-3xl md:text-4xl font-semibold text-accent-blue">3.6mm</p>
+            <p class="text-[10px] text-white/30 font-medium tracking-wider uppercase mt-1">Sea level rise/yr</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SLIDE 6: WHAT CAN WE DO? ==================== -->
+  <div class="slide" data-slide="5">
+    <div class="bg-image" style="background-image: url('https://picsum.photos/seed/green-forest-light-rays/1920/1080.jpg')"></div>
+    <div class="bg-gradient" style="background: linear-gradient(180deg, rgba(5,5,13,0.95) 0%, rgba(5,15,10,0.85) 40%, rgba(5,15,10,0.85) 60%, rgba(5,5,13,0.95) 100%)"></div>
+    <div class="absolute inset-0 flex flex-col justify-center px-8 md:px-16">
+      <div class="max-w-7xl mx-auto w-full">
+        <div class="text-center mb-14">
+          <div class="fade-up d1 flex items-center justify-center gap-3 mb-5">
+            <div class="w-8 h-[2px] bg-accent-teal rounded-full"></div>
+            <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-accent-teal">05 — Action</span>
+            <div class="w-8 h-[2px] bg-accent-teal rounded-full"></div>
+          </div>
+          <h2 class="fade-up d2 font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight">What Can We Do?</h2>
+          <p class="fade-up d3 mt-4 text-sm text-white/40 font-light max-w-md mx-auto">Every individual action counts toward a collective impact</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Save Energy -->
+          <div class="fade-up d3 action-card p-6 text-center group cursor-default">
+            <div class="w-14 h-14 rounded-2xl bg-accent-amber/10 border border-accent-amber/15 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-500">
+              <iconify-icon icon="lucide:zap" width="24" class="text-accent-amber"></iconify-icon>
+            </div>
+            <h3 class="text-base font-semibold tracking-tight mb-2">Save Energy</h3>
+            <p class="text-xs text-white/35 font-light leading-relaxed">Turn off lights, use efficient appliances, reduce consumption</p>
+          </div>
+          <!-- Plant Trees -->
+          <div class="fade-up d4 action-card p-6 text-center group cursor-default">
+            <div class="w-14 h-14 rounded-2xl bg-green-500/10 border border-green-500/15 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-500">
+              <iconify-icon icon="lucide:tree-pine" width="24" class="text-green-400"></iconify-icon>
+            </div>
+            <h3 class="text-base font-semibold tracking-tight mb-2">Plant Trees</h3>
+            <p class="text-xs text-white/35 font-light leading-relaxed">Restore forests, support reforestation programs locally</p>
+          </div>
+          <!-- Reduce, Reuse, Recycle -->
+          <div class="fade-up d5 action-card p-6 text-center group cursor-default">
+            <div class="w-14 h-14 rounded-2xl bg-accent-blue/10 border border-accent-blue/15 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-500">
+              <iconify-icon icon="lucide:recycle" width="24" class="text-accent-blue"></iconify-icon>
+            </div>
+            <h3 class="text-base font-semibold tracking-tight mb-2">Reduce, Reuse, Recycle</h3>
+            <p class="text-xs text-white/35 font-light leading-relaxed">Minimize waste, choose sustainable products daily</p>
+          </div>
+          <!-- Spread Awareness -->
+          <div class="fade-up d6 action-card p-6 text-center group cursor-default">
+            <div class="w-14 h-14 rounded-2xl bg-accent-teal/10 border border-accent-teal/15 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-500">
+              <iconify-icon icon="lucide:megaphone" width="24" class="text-accent-teal"></iconify-icon>
+            </div>
+            <h3 class="text-base font-semibold tracking-tight mb-2">Spread Awareness</h3>
+            <p class="text-xs text-white/35 font-light leading-relaxed">Educate others, join climate movements, speak up</p>
+          </div>
+        </div>
+
+        <!-- Closing statement -->
+        <div class="fade-up d6 mt-14 text-center">
+          <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-accent-teal/10 border border-accent-teal/15">
+            <iconify-icon icon="lucide:globe" width="16" class="text-accent-teal"></iconify-icon>
+            <span class="text-xs font-medium text-accent-teal/80 tracking-wide">The Earth does not belong to us — we belong to the Earth</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation Controls -->
+<!-- Left/Right Arrows -->
+<button id="prevBtn" onclick="navigate(-1)" class="fixed left-5 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all duration-300 backdrop-blur-sm opacity-0 pointer-events-none" aria-label="Previous slide">
+  <iconify-icon icon="lucide:chevron-left" width="18" class="text-white/60"></iconify-icon>
+</button>
+<button id="nextBtn" onclick="navigate(1)" class="fixed right-5 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all duration-300 backdrop-blur-sm" aria-label="Next slide">
+  <iconify-icon icon="lucide:chevron-right" width="18" class="text-white/60"></iconify-icon>
+</button>
+
+<!-- Bottom Navigation -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6">
+  <div class="flex items-center gap-2" id="navDots"></div>
+  <div class="text-[10px] font-medium text-white/25 tracking-widest">
+    <span id="currentNum" class="text-white/50">01</span>
+    <span class="mx-1">/</span>
+    <span>06</span>
+  </div>
+</div>
+
+<!-- Keyboard hint -->
+<div class="fixed bottom-6 right-6 z-50 flex items-center gap-2 text-white/15 text-[10px] tracking-wider">
+  <kbd class="px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.03] font-mono text-[9px]">←</kbd>
+  <kbd class="px-1.5 py-0.5 rounded border border-white/10 bg-white/[0.03] font-mono text-[9px]">→</kbd>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+let currentSlide = 0;
+let isAnimating = false;
+
+// Build nav dots
+const dotsContainer = document.getElementById('navDots');
+for (let i = 0; i < totalSlides; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => goToSlide(i);
+  dotsContainer.appendChild(dot);
+}
+
+function updateUI() {
+  // Progress bar
+  document.getElementById('progressBar').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+  
+  // Current number
+  document.getElementById('currentNum').textContent = String(currentSlide + 1).padStart(2, '0');
+  
+  // Dots
+  document.querySelectorAll('.nav-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === currentSlide);
+  });
+  
+  // Arrow visibility
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  if (currentSlide === 0) {
+    prev.style.opacity = '0';
+    prev.style.pointerEvents = 'none';
+  } else {
+    prev.style.opacity = '1';
+    prev.style.pointerEvents = 'auto';
+  }
+  if (currentSlide === totalSlides - 1) {
+    next.style.opacity = '0';
+    next.style.pointerEvents = 'none';
+  } else {
+    next.style.opacity = '1';
+    next.style.pointerEvents = 'auto';
+  }
+}
+
+function goToSlide(index) {
+  if (isAnimating || index === currentSlide || index < 0 || index >= totalSlides) return;
+  isAnimating = true;
+  
+  const direction = index > currentSlide ? 'left' : 'right';
+  const oldSlide = slides[currentSlide];
+  const newSlide = slides[index];
+  
+  // Exit old
+  oldSlide.classList.remove('active');
+  oldSlide.classList.add(direction === 'left' ? 'exit-left' : 'exit-right');
+  
+  // Enter new
+  newSlide.classList.remove('exit-left', 'exit-right');
+  // Small delay for entrance
+  requestAnimationFrame(() => {
+    newSlide.classList.add('active');
+  });
+  
+  currentSlide = index;
+  updateUI();
+  
+  setTimeout(() => {
+    oldSlide.classList.remove('exit-left', 'exit-right');
+    isAnimating = false;
+  }, 850);
+}
+
+function navigate(dir) {
+  goToSlide(currentSlide + dir);
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault();
+    navigate(1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    navigate(-1);
+  }
+});
+
+// Touch support
+let touchStartY = 0;
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < 0) navigate(1);
+    else navigate(-1);
+  }
+}, { passive: true });
+
+// Mouse wheel
+let wheelTimeout;
+document.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  clearTimeout(wheelTimeout);
+  wheelTimeout = setTimeout(() => {
+    if (e.deltaY > 30) navigate(1);
+    else if (e.deltaY < -30) navigate(-1);
+  }, 50);
+}, { passive: false });
+
+// Initialize
+updateUI();
+</script>
+
+</body>
+</html>
